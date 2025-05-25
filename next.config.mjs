@@ -1,6 +1,8 @@
 import webpack from "webpack";
 import CopyPlugin from "copy-webpack-plugin";
 
+import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
+
 const mode = process.env.BUILD_MODE ?? "standalone";
 console.log("[Next] build mode", mode);
 
@@ -13,8 +15,19 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"],
+    }, {
+      test: /pypi\/.*\.whl$/,
+      type: 'asset/resource',
+      generator: {
+        filename: 'pypi/[name][ext]',
+      },
+    }, {
+      test: /pyodide-kernel-extension\/schema\/.*/,
+      type: 'asset/resource',
+      generator: {
+        filename: 'schema/[name][ext]',
+      },
     });
-
     if (disableChunk) {
       config.plugins.push(
         new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
@@ -24,6 +37,10 @@ const nextConfig = {
     config.resolve.fallback = {
       child_process: false,
     };
+
+    if (!isServer) {
+      config.plugins.push(new NodePolyfillPlugin());
+    }
 
     return config;
   },

@@ -11,9 +11,10 @@ import LoadingIcon from "../icons/three-dots.svg";
 
 import { getCSSVar, useMobileScreen } from "../utils";
 
-import dynamic from "next/dynamic";
+import dynamic, { noSSR } from "next/dynamic";
 import { Path, SlotID } from "../constant";
 import { ErrorBoundary } from "./error";
+
 
 import { getISOLang, getLang } from "../locales";
 
@@ -38,6 +39,7 @@ import {
 } from "../utils/prodinfo";
 import { useRAGStore } from "../store/rag";
 import { useKGStore } from "../store/kg";
+import tr from "../locales/tr";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -74,6 +76,13 @@ const RAGPage = dynamic(async () => (await import("./rag")).RAGPage, {
 const KGPage = dynamic(async () => (await import("./kg")).KGPage, {
   loading: () => <Loading noLogo />,
 });
+const RightPanel = dynamic(
+  async () => (await import("./right-panel")).RightPanel,
+  {
+    ssr: false,
+    loading: () => <Loading noLogo />,
+  },
+);
 
 export function useSwitchTheme() {
   const config = useAppConfig();
@@ -193,6 +202,8 @@ function Screen() {
               <Route path={Path.KG} element={<KGPage />} />
             </Routes>
           </div>
+
+          <RightPanel className={isHome ? styles["right-sidebar-show"] : ""} />
         </>
       )}
     </div>

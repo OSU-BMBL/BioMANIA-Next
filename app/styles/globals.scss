@@ -103,7 +103,8 @@
   --window-width: 90vw;
   --window-height: 90vh;
   --sidebar-width: 300px;
-  --window-content-width: calc(100% - var(--sidebar-width));
+  --right-sidebar-width: 600px;
+  --window-content-width: calc(100% - var(--sidebar-width) - var(--right-sidebar-width));
   --message-max-width: 80%;
   --full-height: 100%;
 }
@@ -432,4 +433,9 @@ pre {
 .snippet.danger {
   color: hsl(var(--ui-danger) / var(--ui-text-opacity));
   background-color: hsl(var(--ui-danger) / 0.2);
+}
+
+.jp-Notebook .jp-Cell {
+    /* Your desired width. Use !important if specificity isn't enough. */
+    width: 100% !important; 
 }

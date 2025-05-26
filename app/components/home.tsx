@@ -32,13 +32,9 @@ import { api } from "../client/api";
 import { useAccessStore, useChatStore } from "../store";
 import { ProductionInfo } from "../utils/datatypes";
 import { 
-  getKnowledgeGraphInfo, 
   getLLMModels, 
   getMaskInfo, 
-  getVectorStoreInfo 
 } from "../utils/prodinfo";
-import { useRAGStore } from "../store/rag";
-import { useKGStore } from "../store/kg";
 import tr from "../locales/tr";
 
 export function Loading(props: { noLogo?: boolean }) {
@@ -70,12 +66,6 @@ const MaskPage = dynamic(async () => (await import("./mask")).MaskPage, {
   loading: () => <Loading noLogo />,
 });
 
-const RAGPage = dynamic(async () => (await import("./rag")).RAGPage, {
-  loading: () => <Loading noLogo />,
-});
-const KGPage = dynamic(async () => (await import("./kg")).KGPage, {
-  loading: () => <Loading noLogo />,
-});
 const RightPanel = dynamic(
   async () => (await import("./right-panel")).RightPanel,
   {
@@ -198,8 +188,6 @@ function Screen() {
               <Route path={Path.Masks} element={<MaskPage />} />
               <Route path={Path.Chat} element={<Chat />} />
               <Route path={Path.Settings} element={<Settings />} />
-              <Route path={Path.RAG} element={<RAGPage />} />
-              <Route path={Path.KG} element={<KGPage />} />
             </Routes>
           </div>
 
@@ -235,11 +223,7 @@ export function Home() {
         strProdInfo === "undefined" ? undefined : JSON.parse(strProdInfo);
       const mask = getMaskInfo(theProdInfo);
       useChatStore.getState().initializeChat(mask);
-      const ragInfo = getVectorStoreInfo(theProdInfo);
-      const kgInfo = getKnowledgeGraphInfo(theProdInfo);
       const models = getLLMModels(theProdInfo);
-      useRAGStore.getState().initializeRAG(ragInfo);
-      useKGStore.getState().initializeKG(kgInfo);
       useAppConfig.getState().initializeConfig(models);
     });
   }, []);

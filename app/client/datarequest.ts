@@ -1,5 +1,5 @@
 import { ApiPath, HDR_APPLICATION_JSON, HDR_CONTENT_TYPE } from "../constant";
-import { RAGConfig } from "../store/rag";
+import { getFetchUrl } from "../utils";
 import { DbConnectionArgs } from "../utils/datatypes";
 import { getHeaders } from "./api";
 
@@ -76,27 +76,22 @@ export const requestVSConnectionStatus = async(
 }
 
 export const requestUploadFile = async (
+  sessionId: string,
   file: File,
-  ragConfig: RAGConfig,
-  useRAG: boolean
+  dataType: string,
+  demoMode: boolean,
+  subPath: string,
 ) => {
-  const RAG_URL = ApiPath.RAG;
-  const path = "newdocument";
-  let uploadPath = RAG_URL as string;
-  if (!uploadPath.endsWith('/')) {
-    uploadPath += '/';
-  }
-  uploadPath += path;
+  const FILEUPLOAD = ApiPath.JobFile;
+  let uploadPath = getFetchUrl(subPath, FILEUPLOAD);
   const data = new FormData();
   data.set('file', file);
-  data.set('ragConfig', JSON.stringify(ragConfig));
-  data.set('useRAG', useRAG as unknown as string);
+  data.set('sessionId', sessionId);
+  data.set("dataType", dataType);
+  data.set("example_mode", demoMode.toString())
   const res = await fetch(uploadPath, {
     method: "POST",
     body: data,
-    headers: {
-      ...get_auth_header(),
-    },
   });
   return res;
 }
@@ -143,4 +138,43 @@ export const requestTokenUsage = async (
     }
   });
   return res;
+}
+
+export const requestJobFiles = async (sessionId: string, demoMode: boolean, subPath: string) => {
+  const FILEURL = getFetchUrl(subPath, ApiPath.JobFiles + '/' + sessionId);
+  try {
+    const res = await fetch(FILEURL, {
+      method: "POST",     
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({example_mode: demoMode}) 
+    })
+    return res;
+  } catch (e: any) {
+    console.log(e);
+  }
+}
+
+export const requestDownloadJobFile = async (
+  sessionId: string, filename: string, demoMode: boolean, subPath: string
+) => {
+  const fetchUrl = getFetchUrl(subPath, ApiPath.JobFile + '?' + new URLSearchParams({
+    sessionId: sessionId,
+    filename,
+    example_mode: demoMode.toString(),
+  }));
+  try {
+    const res = await fetch(fetchUrl, {method: "GET"});
+    const data = await res.blob();
+    const url = window.URL.createObjectURL(new Blob([data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+  } catch (e: any) {
+    console.error(e);
+  }
 }

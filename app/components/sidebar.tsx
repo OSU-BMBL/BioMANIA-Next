@@ -13,7 +13,6 @@ import AboutIcon from "../icons/about.svg";
 import DeleteIcon from "../icons/delete.svg";
 import MaskIcon from "../icons/mask.svg";
 import DragIcon from "../icons/drag.svg";
-import RagIcon from "../icons/rag.svg"
 import LightIcon from "../icons/light.svg";
 import DarkIcon from "../icons/dark.svg";
 import AutoIcon from "../icons/auto.svg";
@@ -145,8 +144,6 @@ export function SideBar(props: { className?: string }) {
     (JSON.parse(accessStore.productionInfo) as any) as ProductionInfo;
   const currentModel = chatStore.currentSession().mask.modelConfig.model ?? "gpt-3.5-turbo";
   const sessionId = chatStore.currentSession().id ?? "";
-  const kgProdInfo = getKnowledgeGraphInfo(prodInfo); 
-  const ragProdInfo = getVectorStoreInfo(prodInfo); 
   const mask = getMaskInfo(prodInfo);
 
   // drag side bar
@@ -244,30 +241,6 @@ export function SideBar(props: { className?: string }) {
       </div>
 
       <div className={styles["sidebar-footer-bar"]}>
-        <div 
-          className={styles["sidebar-bar-buttons"]}
-        >
-        <IconButton
-          disabled={!ragProdInfo.enabled}
-          icon={<RagIcon width={16} height={16} />}
-          text={shouldNarrow ? undefined : 'RAG Settings'}
-          className={styles["sidebar-bar-button"]}
-          onClick={() => {
-            navigate(Path.RAG, { state: { fromHome: true } });
-          }}
-          shadow
-        />
-        <IconButton
-          disabled={!kgProdInfo.enabled}
-          icon={<RagIcon />}
-          text={shouldNarrow ? undefined : 'KG Settings'}
-          className={styles["sidebar-bar-button"]}
-          onClick={() => {
-            navigate(Path.KG, { state: { fromHome: true } });
-          }}
-          shadow
-        />
-        </div>
         {!shouldNarrow && (
           <div className={styles["sidebar-token-usage"]}>
           {useAccessStore.getState().tokenUsage.auth_type.slice(0, 6) === "Server" ? (

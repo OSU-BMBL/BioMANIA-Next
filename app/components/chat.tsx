@@ -87,15 +87,10 @@ import { prettyObject } from "../utils/format";
 import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
-import { useRAGStore } from "../store/rag";
-import { useKGStore } from "../store/kg";
 import { DbConfiguration } from "../utils/datatypes";
 import { getOncoKBInfo } from "../utils/prodinfo";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
-  loading: () => <LoadingIcon />,
-});
-const RagContextualModal = dynamic(async () => (await import("./rag-contextual-prompts-modal")).RagContextualPromptsModal, {
   loading: () => <LoadingIcon />,
 });
 
@@ -192,22 +187,6 @@ function PromptToast(props: {
     </div>
   );
 }
-
-function RagPromptToast(
-  { showModal, setShowModal }: { showModal: boolean, setShowModal: (_: boolean) => void }
-) {
-  const chatStore = useChatStore();
-  const session = chatStore.currentSession();
-  const contexts = session.contextualPrompts;
-  return (
-    <>
-      {showModal && (
-        <RagContextualModal onClose={() => setShowModal(false)} contexts={contexts} />
-      )}
-    </>
-  )
-}
-
 
 function useSubmitHandler() {
   const config = useAppConfig();
@@ -430,7 +409,6 @@ export function ChatActions(props: {
   showPromptModal: () => void;
   scrollToBottom: () => void;
   showPromptHints: () => void;
-  showRagPromptModal: () => void;
   hitBottom: boolean;
 }) {
   const config = useAppConfig();
@@ -438,22 +416,10 @@ export function ChatActions(props: {
   const chatStore = useChatStore();
   const accessStore = useAccessStore();
   const prodInfo = accessStore.productionInfo === "undefined" ? undefined : JSON.parse(accessStore.productionInfo);
-  const kgProdInfo = (prodInfo?.KnowledgeGraph ?? { servers: [], enabled: true }) as DbConfiguration;
-  const ragProdInfo = (prodInfo?.VectorStore ?? { servers: [], enabled: true }) as DbConfiguration;
-  const oncokbInfo = getOncoKBInfo(prodInfo);
-  const agentEnableFlags = [kgProdInfo.enabled, ragProdInfo.enabled, oncokbInfo.enabled]
   let enabledAgentsNum = 0;
-  agentEnableFlags.forEach((flag) => (enabledAgentsNum += flag ? 1 : 0));
   const session = chatStore.currentSession();
   const contexts = session.contextualPrompts;
-  const total_rag_prompts_num = contexts.reduce((prev, cur) => (prev + cur.context.length), 0);
-  const rag_prompts_text = (total_rag_prompts_num === 0) ?
-    (Locale.RagContext.Toast("0", "")) :
-    (contexts.map((ctx) => (ctx.context.length > 0 ?
-      Locale.RagContext.Toast(ctx.context.length, ctx.mode) :
-      ""
-    ))).join(" ");
-
+  
   // switch themes
   const theme = config.theme;
   function nextTheme() {
@@ -535,11 +501,6 @@ export function ChatActions(props: {
             });
           }}
         />
-        <ChatAction
-          onClick={props.showRagPromptModal}
-          icon={<BrainIcon />}
-          text={rag_prompts_text}
-        ></ChatAction>
 
         {showModelSelector && (
           <Selector
@@ -558,74 +519,6 @@ export function ChatActions(props: {
               showToast(s[0]);
             }}
           />
-        )}
-      </div>
-      <div className={styles["chat-toggle-group"]}>
-        {oncokbInfo.enabled && (
-          <div className={styles["chat-toggle"]}>
-            <label>OncoKB</label>
-            <input
-              type="checkbox"
-              className={styles["agent-checkbox"]}
-              disabled={chatStore.currentSession().useAutoAgentSession}
-              checked={chatStore.currentSession().useOncoKBSession}
-              onChange={(e) => (
-                chatStore.updateCurrentSession(
-                  (session) => {
-                    session.useOncoKBSession = e.currentTarget.checked;
-                    if (session.useOncoKBSession) {
-                      session.useKGSession = false;
-                      session.useRAGSession = false;
-                    }
-                  }
-                )
-              )}
-            />
-          </div>
-        )}
-        {ragProdInfo.enabled && (
-          <div className={styles["chat-toggle"]}>
-            <label>RAG</label>
-            <input
-              disabled={chatStore.currentSession().useAutoAgentSession}
-              type="checkbox"
-              className={styles["agent-checkbox"]}
-              checked={chatStore.currentSession().useRAGSession}
-              onChange={(e) => (
-                chatStore.updateCurrentSession(
-                  (session) => {
-                    session.useRAGSession = e.currentTarget.checked;
-                    if (session.useRAGSession) {
-                      session.useKGSession = false;
-                      session.useOncoKBSession = false;
-                    }
-                  }
-                )
-              )}
-            />
-          </div>
-        )}
-        {kgProdInfo.enabled && (
-          <div className={styles["chat-toggle"]}>
-            <label aria-disabled={!kgProdInfo.enabled}>KG RAG</label>
-            <input
-              disabled={chatStore.currentSession().useAutoAgentSession}
-              type="checkbox"
-              className={styles["agent-checkbox"]}
-              checked={chatStore.currentSession().useKGSession}
-              onChange={(e) => (
-                chatStore.updateCurrentSession(
-                  (session) => {
-                    session.useKGSession = e.currentTarget.checked;
-                    if (session.useKGSession) {
-                      session.useRAGSession = false;
-                      session.useOncoKBSession = false;
-                    }
-                  }
-                )
-              )}
-            />
-          </div>
         )}
       </div>
     </div>
@@ -954,22 +847,6 @@ function _Chat() {
     });
   };
 
-  const getLoadingText = (
-    useOncoKB: boolean,
-    useRAG: boolean,
-    useKG: boolean,
-  ): string | undefined => {
-    if (useOncoKB) {
-      return Locale.Chat.Loading.OncoKB;
-    } else if (useRAG) {
-      return Locale.Chat.Loading.RAG;
-    } else if (useKG) {
-      return Locale.Chat.Loading.KG;
-    } else {
-      return undefined;
-    }
-  }
-
   const context: RenderMessage[] = useMemo(() => {
     return session.mask.hideContext ? [] : session.mask.context.slice();
   }, [session.mask.context, session.mask.hideContext]);
@@ -1216,10 +1093,6 @@ function _Chat() {
           showModal={showPromptModal}
           setShowModal={setShowPromptModal}
         />
-        <RagPromptToast
-          showModal={showRagPromptModal}
-          setShowModal={setShowRagPromptModal}
-        />
       </div>
 
       <div
@@ -1345,13 +1218,7 @@ function _Chat() {
                         message.content.length === 0 &&
                         !isUser
                       }
-                      loadingText={
-                        ((message.preview || message.streaming) &&
-                        message.content.length === 0 &&
-                        !isUser) ? 
-                        (getLoadingText(session.useOncoKBSession, session.useRAGSession, session.useKGSession)) : 
-                        undefined
-                      }
+                      loadingText="Loading ..."
                       onContextMenu={(e) => onRightClick(e, message)}
                       onDoubleClickCapture={() => {
                         if (!isMobileScreen) return;
@@ -1381,7 +1248,6 @@ function _Chat() {
 
         <ChatActions
           showPromptModal={() => setShowPromptModal(true)}
-          showRagPromptModal={() => setShowRagPromptModal(true)}
           scrollToBottom={scrollToBottom}
           hitBottom={hitBottom}
           showPromptHints={() => {

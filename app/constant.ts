@@ -32,7 +32,9 @@ export enum ApiPath {
   OpenAI = "/api/openai",
   RAG = "/api/rag",
   KG = "/api/kg",
-  TokenUsage = "/api/tokenusage"
+  TokenUsage = "/api/tokenusage",
+  JobFiles = "/api/job/files",
+  JobFile = "/api/job/file",
 }
 
 export enum SlotID {

@@ -1005,11 +1005,6 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-6.0.4.tgz#923ca57e173c6b232bbbb07347b1be982f03e783"
   integrity sha512-s3jaWicZd0pkP0jf5ysyHUI/RE7MHos6qlToFcGWXVp+ykHOy77OUMrfbgJ9it2C5bow7OIQwYYaHjk9XlBQ2A==
 
-"@datalayer/icons-react@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@datalayer/icons-react/-/icons-react-1.0.4.tgz#1dd7070e9445b325b4aa12a2eb2be7ef695f3a33"
-  integrity sha512-XUJYhRs3GdoEcdoZ85dInn5SCRDX8froL91DJuip2rFyU1EoVecJNCulpvcTtGguRkwku7fojHIMsPfsmvONEg==
-
 "@eslint-community/eslint-utils@^4.2.0":
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz#a23514e8fb9af1269d5f7788aa556798d61c6b59"

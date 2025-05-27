@@ -27,6 +27,9 @@ import PinIcon from "../icons/pin.svg";
 import EditIcon from "../icons/rename.svg";
 import ConfirmIcon from "../icons/confirm.svg";
 import CancelIcon from "../icons/cancel.svg";
+import UploadIcon from "../icons/file-upload.svg";
+import DownloadIcon from "../icons/file-download.svg";
+import FileManagerIcon from "../icons/file-manager.svg"
 
 import BottomIcon from "../icons/bottom.svg";
 import StopIcon from "../icons/pause.svg";
@@ -501,25 +504,17 @@ export function ChatActions(props: {
             });
           }}
         />
-
-        {showModelSelector && (
-          <Selector
-            defaultSelectedValue={currentModel}
-            items={models.map((m) => ({
-              title: m.displayName,
-              value: m.name,
-            }))}
-            onClose={() => setShowModelSelector(false)}
-            onSelection={(s) => {
-              if (s.length === 0) return;
-              chatStore.updateCurrentSession((session) => {
-                session.mask.modelConfig.model = s[0] as ModelType;
-                session.mask.syncGlobalConfig = false;
-              });
-              showToast(s[0]);
-            }}
-          />
-        )}
+        <div id="upload-file"><ChatAction
+        onClick={props.showFileUploadModal}
+        text="upload file"
+        icon={<UploadIcon />}
+      /></div>
+      
+      <ChatAction
+        onClick={props.showFileDownloadModal}
+        text="file manager"
+        icon={<FileManagerIcon />}
+      />
       </div>
     </div>
   );

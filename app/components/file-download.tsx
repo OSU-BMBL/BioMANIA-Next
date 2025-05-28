@@ -33,11 +33,11 @@ export function FileDownloadModal (
 ) {
   const chatStore = useChatStore.getState();
   const session = useChatStore().currentSession();
-  const jobId = session.jobId !== undefined ? (`${session.jobId}`) : undefined;
+  const jobId = session.id !== undefined ? (`${session.id}`) : undefined;
   const [jobFiles, setJobFiles] = useState<Array<JobFile>>([]);
   async function onDownload(filename: string) {
     try {
-      await chatStore.requestDownloadJobFile(filename);
+      //await chatStore.requestDownloadJobFile(filename);
     } catch (e: any) {
       console.error(e);
     }
@@ -46,7 +46,7 @@ export function FileDownloadModal (
     taskId: string, filename: string
   ) {
     try {
-      await chatStore.requestDownloadTaskResultFile(taskId, filename);
+      // await chatStore.requestDownloadTaskResultFile(taskId, filename);
     } catch(e: any) {
       console.error(e);
     }
@@ -60,7 +60,7 @@ export function FileDownloadModal (
       return;
     }
     try {
-      await chatStore.requestRemoveJobFile(filename);
+      // await chatStore.requestRemoveJobFile(filename);
       await updateJobFiles();
     } catch (e: any) {
       console.error(e);
@@ -69,9 +69,10 @@ export function FileDownloadModal (
 
   async function updateJobFiles() {
     if (jobId && jobId.length > 0) {
-      const res = await chatStore.requestJobFiles();
+      // const res = await chatStore.requestJobFiles();
       try {
-        const {job_files: files} = await res?.json();
+        // const {job_files: files} = await res?.json();
+        const files: Array<JobFile> = [];
         setJobFiles(files as Array<JobFile>);
         console.dir(files);
       } catch (e: any) {
@@ -84,7 +85,7 @@ export function FileDownloadModal (
   }, []);
 
   const TasksFiles = () => {
-    const tasksDict = session.taskIds;
+    const tasksDict: Record<string, string> = {};// session.taskIds;
     const tasks: Array<any> = [];
     Object.keys(tasksDict).forEach(id => {
       if (tasksDict[id] !== null && tasksDict[id].length > 0) {
@@ -94,7 +95,7 @@ export function FileDownloadModal (
     return (tasks.length === 0) ? (<div />) : (
       <>
       {tasks.map((task) => (
-        <div className={styles['task-container']}>
+        <div key={`${task.id}`} className={styles['task-container']}>
           <div className={styles['task-title']}>{`task ${task.id}`}</div>
           <List>{task.files.map((f: string) => (
             <ListItem

@@ -1010,7 +1010,7 @@ function _Chat() {
   const [isEditingMessage, setIsEditingMessage] = useState(false);
 
   function onFileUploaded(message: string) {
-    chatStore.onFileUploaded(message);
+    // chatStore.onFileUploaded(message);
   }
   function onFileDownloaded(_message: string) {
     

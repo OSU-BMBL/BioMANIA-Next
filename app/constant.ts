@@ -22,6 +22,7 @@ export enum Path {
   NewChat = "/new-chat",
   Welcome = "/welcome",
   Masks = "/masks",
+  NewProject = "/new-project",
   Auth = "/auth",
   RAG = "/rag",
   KG = "/kg"
@@ -35,6 +36,13 @@ export enum ApiPath {
   TokenUsage = "/api/tokenusage",
   JobFiles = "/api/job/files",
   JobFile = "/api/job/file",
+}
+
+export enum ProjectTypeEnum {
+  Unknown = "unknown",
+  Scanpy = "scanpy",
+  AnnData = "anndata",
+  scGNN = "scgnn",
 }
 
 export enum SlotID {

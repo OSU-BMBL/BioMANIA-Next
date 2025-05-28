@@ -581,6 +581,11 @@ const cn = {
       },
     },
   },
+  NewProject: {
+    Return: "返回",
+    Title: "挑选一个面具",
+    SubTitle: "现在开始，与面具背后的灵魂思维碰撞",
+  },
   NewChat: {
     Return: "返回",
     Skip: "直接开始",

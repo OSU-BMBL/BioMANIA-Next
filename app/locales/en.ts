@@ -589,6 +589,11 @@ const en: LocaleType = {
       },
     },
   },
+  NewProject: {
+    Return: "Return",
+    Title: "Pick a Project Type",
+    SubTitle: "Choose the right project type to start",
+  },
   NewChat: {
     Return: "Return",
     Skip: "Just Start",

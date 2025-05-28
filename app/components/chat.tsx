@@ -27,6 +27,9 @@ import PinIcon from "../icons/pin.svg";
 import EditIcon from "../icons/rename.svg";
 import ConfirmIcon from "../icons/confirm.svg";
 import CancelIcon from "../icons/cancel.svg";
+import UploadIcon from "../icons/file-upload.svg";
+import DownloadIcon from "../icons/file-download.svg";
+import FileManagerIcon from "../icons/file-manager.svg"
 
 import BottomIcon from "../icons/bottom.svg";
 import StopIcon from "../icons/pause.svg";
@@ -87,15 +90,12 @@ import { prettyObject } from "../utils/format";
 import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
-import { useRAGStore } from "../store/rag";
-import { useKGStore } from "../store/kg";
 import { DbConfiguration } from "../utils/datatypes";
 import { getOncoKBInfo } from "../utils/prodinfo";
+import { FileUploadModal } from "./file-upload";
+import { FileDownloadModal } from "./file-download";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
-  loading: () => <LoadingIcon />,
-});
-const RagContextualModal = dynamic(async () => (await import("./rag-contextual-prompts-modal")).RagContextualPromptsModal, {
   loading: () => <LoadingIcon />,
 });
 
@@ -192,22 +192,6 @@ function PromptToast(props: {
     </div>
   );
 }
-
-function RagPromptToast(
-  { showModal, setShowModal }: { showModal: boolean, setShowModal: (_: boolean) => void }
-) {
-  const chatStore = useChatStore();
-  const session = chatStore.currentSession();
-  const contexts = session.contextualPrompts;
-  return (
-    <>
-      {showModal && (
-        <RagContextualModal onClose={() => setShowModal(false)} contexts={contexts} />
-      )}
-    </>
-  )
-}
-
 
 function useSubmitHandler() {
   const config = useAppConfig();
@@ -430,7 +414,8 @@ export function ChatActions(props: {
   showPromptModal: () => void;
   scrollToBottom: () => void;
   showPromptHints: () => void;
-  showRagPromptModal: () => void;
+  showFileUploadModal: () => void;
+  showFileDownloadModal: () => void;
   hitBottom: boolean;
 }) {
   const config = useAppConfig();
@@ -438,22 +423,10 @@ export function ChatActions(props: {
   const chatStore = useChatStore();
   const accessStore = useAccessStore();
   const prodInfo = accessStore.productionInfo === "undefined" ? undefined : JSON.parse(accessStore.productionInfo);
-  const kgProdInfo = (prodInfo?.KnowledgeGraph ?? { servers: [], enabled: true }) as DbConfiguration;
-  const ragProdInfo = (prodInfo?.VectorStore ?? { servers: [], enabled: true }) as DbConfiguration;
-  const oncokbInfo = getOncoKBInfo(prodInfo);
-  const agentEnableFlags = [kgProdInfo.enabled, ragProdInfo.enabled, oncokbInfo.enabled]
   let enabledAgentsNum = 0;
-  agentEnableFlags.forEach((flag) => (enabledAgentsNum += flag ? 1 : 0));
   const session = chatStore.currentSession();
   const contexts = session.contextualPrompts;
-  const total_rag_prompts_num = contexts.reduce((prev, cur) => (prev + cur.context.length), 0);
-  const rag_prompts_text = (total_rag_prompts_num === 0) ?
-    (Locale.RagContext.Toast("0", "")) :
-    (contexts.map((ctx) => (ctx.context.length > 0 ?
-      Locale.RagContext.Toast(ctx.context.length, ctx.mode) :
-      ""
-    ))).join(" ");
-
+  
   // switch themes
   const theme = config.theme;
   function nextTheme() {
@@ -535,98 +508,17 @@ export function ChatActions(props: {
             });
           }}
         />
-        <ChatAction
-          onClick={props.showRagPromptModal}
-          icon={<BrainIcon />}
-          text={rag_prompts_text}
-        ></ChatAction>
-
-        {showModelSelector && (
-          <Selector
-            defaultSelectedValue={currentModel}
-            items={models.map((m) => ({
-              title: m.displayName,
-              value: m.name,
-            }))}
-            onClose={() => setShowModelSelector(false)}
-            onSelection={(s) => {
-              if (s.length === 0) return;
-              chatStore.updateCurrentSession((session) => {
-                session.mask.modelConfig.model = s[0] as ModelType;
-                session.mask.syncGlobalConfig = false;
-              });
-              showToast(s[0]);
-            }}
-          />
-        )}
-      </div>
-      <div className={styles["chat-toggle-group"]}>
-        {oncokbInfo.enabled && (
-          <div className={styles["chat-toggle"]}>
-            <label>OncoKB</label>
-            <input
-              type="checkbox"
-              className={styles["agent-checkbox"]}
-              disabled={chatStore.currentSession().useAutoAgentSession}
-              checked={chatStore.currentSession().useOncoKBSession}
-              onChange={(e) => (
-                chatStore.updateCurrentSession(
-                  (session) => {
-                    session.useOncoKBSession = e.currentTarget.checked;
-                    if (session.useOncoKBSession) {
-                      session.useKGSession = false;
-                      session.useRAGSession = false;
-                    }
-                  }
-                )
-              )}
-            />
-          </div>
-        )}
-        {ragProdInfo.enabled && (
-          <div className={styles["chat-toggle"]}>
-            <label>RAG</label>
-            <input
-              disabled={chatStore.currentSession().useAutoAgentSession}
-              type="checkbox"
-              className={styles["agent-checkbox"]}
-              checked={chatStore.currentSession().useRAGSession}
-              onChange={(e) => (
-                chatStore.updateCurrentSession(
-                  (session) => {
-                    session.useRAGSession = e.currentTarget.checked;
-                    if (session.useRAGSession) {
-                      session.useKGSession = false;
-                      session.useOncoKBSession = false;
-                    }
-                  }
-                )
-              )}
-            />
-          </div>
-        )}
-        {kgProdInfo.enabled && (
-          <div className={styles["chat-toggle"]}>
-            <label aria-disabled={!kgProdInfo.enabled}>KG RAG</label>
-            <input
-              disabled={chatStore.currentSession().useAutoAgentSession}
-              type="checkbox"
-              className={styles["agent-checkbox"]}
-              checked={chatStore.currentSession().useKGSession}
-              onChange={(e) => (
-                chatStore.updateCurrentSession(
-                  (session) => {
-                    session.useKGSession = e.currentTarget.checked;
-                    if (session.useKGSession) {
-                      session.useRAGSession = false;
-                      session.useOncoKBSession = false;
-                    }
-                  }
-                )
-              )}
-            />
-          </div>
-        )}
+        <div id="upload-file"><ChatAction
+        onClick={props.showFileUploadModal}
+        text="upload file"
+        icon={<UploadIcon />}
+      /></div>
+      
+      <ChatAction
+        onClick={props.showFileDownloadModal}
+        text="file manager"
+        icon={<FileManagerIcon />}
+      />
       </div>
     </div>
   );
@@ -954,22 +846,6 @@ function _Chat() {
     });
   };
 
-  const getLoadingText = (
-    useOncoKB: boolean,
-    useRAG: boolean,
-    useKG: boolean,
-  ): string | undefined => {
-    if (useOncoKB) {
-      return Locale.Chat.Loading.OncoKB;
-    } else if (useRAG) {
-      return Locale.Chat.Loading.RAG;
-    } else if (useKG) {
-      return Locale.Chat.Loading.KG;
-    } else {
-      return undefined;
-    }
-  }
-
   const context: RenderMessage[] = useMemo(() => {
     return session.mask.hideContext ? [] : session.mask.context.slice();
   }, [session.mask.context, session.mask.hideContext]);
@@ -1075,7 +951,8 @@ function _Chat() {
       : -1;
 
   const [showPromptModal, setShowPromptModal] = useState(false);
-  const [showRagPromptModal, setShowRagPromptModal] = useState(false);
+  const [showFileUploadModal, setShowUploadModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const clientConfig = useMemo(() => getClientConfig(), []);
 
@@ -1131,6 +1008,13 @@ function _Chat() {
 
   // edit / insert message modal
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+
+  function onFileUploaded(message: string) {
+    // chatStore.onFileUploaded(message);
+  }
+  function onFileDownloaded(_message: string) {
+    
+  }
 
   // remember unfinished input
   useEffect(() => {
@@ -1216,10 +1100,22 @@ function _Chat() {
           showModal={showPromptModal}
           setShowModal={setShowPromptModal}
         />
-        <RagPromptToast
-          showModal={showRagPromptModal}
-          setShowModal={setShowRagPromptModal}
+        {showFileUploadModal 
+        && (
+        <FileUploadModal
+          onClose={() => setShowUploadModal(false)}
+          jobId={session.id}
+          onUploaded={onFileUploaded}
         />
+        )}
+
+        {showDownloadModal
+        && (
+          <FileDownloadModal
+            onClose={() => setShowDownloadModal(false)}
+            onDownloaded={onFileDownloaded}
+          />
+        )}
       </div>
 
       <div
@@ -1345,13 +1241,7 @@ function _Chat() {
                         message.content.length === 0 &&
                         !isUser
                       }
-                      loadingText={
-                        ((message.preview || message.streaming) &&
-                        message.content.length === 0 &&
-                        !isUser) ? 
-                        (getLoadingText(session.useOncoKBSession, session.useRAGSession, session.useKGSession)) : 
-                        undefined
-                      }
+                      loadingText="Loading ..."
                       onContextMenu={(e) => onRightClick(e, message)}
                       onDoubleClickCapture={() => {
                         if (!isMobileScreen) return;
@@ -1381,7 +1271,8 @@ function _Chat() {
 
         <ChatActions
           showPromptModal={() => setShowPromptModal(true)}
-          showRagPromptModal={() => setShowRagPromptModal(true)}
+          showFileUploadModal={() => setShowUploadModal(true)}
+          showFileDownloadModal={() => setShowDownloadModal(true)}
           scrollToBottom={scrollToBottom}
           hitBottom={hitBottom}
           showPromptHints={() => {

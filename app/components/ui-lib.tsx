@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { useDropzone } from "react-dropzone";
+
 import styles from "./ui-lib.module.scss";
 import LoadingIcon from "../icons/three-dots.svg";
 import CloseIcon from "../icons/close.svg";
@@ -521,16 +522,21 @@ export function Selector<T>(props: {
   );
 }
 
+export enum DataFileTypeEnum {
+  AllTypes="all types"
+}
+
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-export function ReactDropZone({ accept, open, disabled, onUpload, fileLabel }: {
-  accept: Record<string, Array<string>>;
+export function ReactDropZone({ accept, open, disabled, onUpload, fileTypeLabel }: {
+  accept: Record<string, Array<string>> | undefined;
   open?: () => void;
   disabled?: boolean
-  onUpload: (_: File, done: () => void) => Promise<void>;
-  fileLabel?: string;
+  onUpload: (_: File, dataType: string, done: () => void) => Promise<void>;
+  fileTypeLabel?: string;
 }) {
-  const theFileLabel = fileLabel ?? "TXT, PDF";
+  const theFileLabel = fileTypeLabel ?? "TXT, PDF";
   const [fileToUpload, setFileToUpload] = useState<File | undefined>();
+  const [dataFileType, setDataFileType] = useState<DataFileTypeEnum>(DataFileTypeEnum.AllTypes);
   function onFileDrop(acceptedFiles: Array<File>) {
     const file = acceptedFiles.length > 0 ? acceptedFiles[0] : undefined;
     if (file === undefined) {
@@ -545,7 +551,7 @@ export function ReactDropZone({ accept, open, disabled, onUpload, fileLabel }: {
     if (fileToUpload === undefined) {
       return;
     }
-    await onUpload(fileToUpload, () => {
+    await onUpload(fileToUpload, dataFileType.toString(), () => {
       setFileToUpload(undefined);
     });
   }
@@ -562,20 +568,23 @@ export function ReactDropZone({ accept, open, disabled, onUpload, fileLabel }: {
     });
 
   const files = (fileToUpload === undefined ? [] : [fileToUpload]).map((file: any) => (
-    <li key={file.path} className={styles["file-item"]}>
-      <div className={styles["file-info"]}>{file.path} - {file.size} bytes </div>
-      <div className={styles["file-warning"]}>
-        {file.size > MAX_FILE_SIZE ? (
-          <>
-            <div>File must be 50MB or smaller</div>
-            <div className={styles["warning-icon"]}><WarningIcon /></div>
-          </>
-        ) : (<div />)}
+    <li key={file.path} >
+      <div className={styles["file-item"]}>
+        <div className={styles["file-info"]}>{file.path} - {file.size} bytes </div>
+        <div className={styles["file-warning"]}>
+          {file.size > MAX_FILE_SIZE ? (
+            <>
+              <div>File must be 50MB or smaller</div>
+              <div className={styles["warning-icon"]}><WarningIcon /></div>
+            </>
+          ) : (<div />)}
+        </div>
+        <div
+          className={`${styles["file-remove-icon"]}`}
+          onClick={onRemoveFile}
+        ><CloseIcon /></div>
       </div>
-      <div
-        className={`${styles["file-remove-icon"]}`}
-        onClick={onRemoveFile}
-      ><CloseIcon /></div>
+      
     </li>
   ));
 

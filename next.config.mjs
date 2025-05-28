@@ -1,5 +1,4 @@
 import webpack from "webpack";
-import CopyPlugin from "copy-webpack-plugin";
 
 const mode = process.env.BUILD_MODE ?? "standalone";
 console.log("[Next] build mode", mode);
@@ -13,8 +12,7 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"],
-    });
-
+    },);
     if (disableChunk) {
       config.plugins.push(
         new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),

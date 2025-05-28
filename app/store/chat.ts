@@ -685,6 +685,11 @@ export const useChatStore = createPersistStore(
         localStorage.clear();
         location.reload();
       },
+      async requestUploadFile(file: File, dataType: string) {
+        const session = get().currentSession();
+        // return await workflowMgr.requestUploadFile(session, file, dataType);
+        return 
+      },
     };
 
     return methods;

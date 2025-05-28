@@ -211,7 +211,7 @@ export function SideBar(props: { className?: string }) {
         />
         <IconButton
           icon={<MaskIcon />}
-          text={shouldNarrow ? undefined : Locale.Mask.Name}
+          text={shouldNarrow ? undefined : "New Project"}
           className={styles["sidebar-bar-button"]}
           onClick={() => {
             if (mask) {
@@ -219,7 +219,7 @@ export function SideBar(props: { className?: string }) {
               navigate(Path.Chat);
             } else {
               if (config.dontShowMaskSplashScreen !== true) {
-                navigate(Path.NewChat);
+                navigate(Path.NewProject);
               } else {
                 navigate(Path.Masks, { state: { fromHome: true } });
               }

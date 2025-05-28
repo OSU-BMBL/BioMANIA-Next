@@ -61,18 +61,20 @@ const Chat = dynamic(async () => (await import("./chat")).Chat, {
 const NewChat = dynamic(async () => (await import("./new-chat")).NewChat, {
   loading: () => <Loading noLogo />,
 });
+const NewProject = dynamic(async () => (await import("./new-project")).NewProject, {
+  loading: () => <Loading noLogo />,
+});
 
 const MaskPage = dynamic(async () => (await import("./mask")).MaskPage, {
   loading: () => <Loading noLogo />,
 });
 
-const RightPanel = dynamic(
-  async () => (await import("./right-panel")).RightPanel,
-  {
-    ssr: false,
-    loading: () => <Loading noLogo />,
-  },
-);
+
+const RightPanel = dynamic(async () => (await import("./right-panel")).RightPanel, {
+  loading: () => <Loading noLogo />,
+});
+
+// import {RightPanel} from "./right-panel";
 
 export function useSwitchTheme() {
   const config = useAppConfig();
@@ -183,7 +185,7 @@ function Screen() {
           <div className={styles["window-content"]} id={SlotID.AppBody}>
             <Routes>
               <Route path={Path.Home} element={getHomeScreen()} />
-              <Route path={Path.NewChat} element={<NewChat />} />
+              <Route path={Path.NewProject} element={<NewProject />} />
               <Route path={Path.Welcome} element={<Welcome />} />
               <Route path={Path.Masks} element={<MaskPage />} />
               <Route path={Path.Chat} element={<Chat />} />

@@ -1,0 +1,92 @@
+@import "../styles/animation.scss";
+
+.new-project {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    animation: slide-in-from-top ease 0.3s;
+  }
+
+  .title {
+    font-size: 32px;
+    font-weight: bolder;
+    margin-bottom: 1vh;
+    animation: slide-in ease 0.35s;
+  }
+
+  .sub-title {
+    animation: slide-in ease 0.4s;
+  }
+
+  .actions {
+    margin-top: 5vh;
+    margin-bottom: 2vh;
+    animation: slide-in ease 0.45s;
+    display: flex;
+    justify-content: center;
+    font-size: 12px;
+
+    .skip {
+      margin-left: 10px;
+    }
+  }
+
+  .projects {
+    flex-grow: 1;
+    width: 100%;
+    overflow: auto;
+    align-items: center;
+    padding-top: 20px;
+
+    animation: slide-in ease 0.5s;
+
+    .mask-row {
+      display: flex;
+      // flex-direction: row;
+      justify-content: center;
+      margin-bottom: 10px;
+
+      @for $i from 1 to 10 {
+        &:nth-child(#{$i * 2}) {
+          margin-left: 50px;
+        }
+      }
+
+      .mask {
+        display: flex;
+        align-items: center;
+        padding: 10px 14px;
+        border: var(--border-in-light);
+        box-shadow: var(--card-shadow);
+        background-color: var(--white);
+        border-radius: 10px;
+        margin-right: 10px;
+        max-width: 12em;
+        transform: scale(1);
+        cursor: pointer;
+        transition: all ease 0.3s;
+
+        &:hover {
+          transform: translateY(-5px) scale(1.1);
+          z-index: 999;
+          border-color: var(--primary);
+        }
+
+        .mask-name {
+          margin-left: 10px;
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}

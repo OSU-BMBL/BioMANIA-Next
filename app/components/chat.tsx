@@ -92,6 +92,8 @@ import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
 import { DbConfiguration } from "../utils/datatypes";
 import { getOncoKBInfo } from "../utils/prodinfo";
+import { FileUploadModal } from "./file-upload";
+import { FileDownloadModal } from "./file-download";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -412,6 +414,8 @@ export function ChatActions(props: {
   showPromptModal: () => void;
   scrollToBottom: () => void;
   showPromptHints: () => void;
+  showFileUploadModal: () => void;
+  showFileDownloadModal: () => void;
   hitBottom: boolean;
 }) {
   const config = useAppConfig();
@@ -947,7 +951,8 @@ function _Chat() {
       : -1;
 
   const [showPromptModal, setShowPromptModal] = useState(false);
-  const [showRagPromptModal, setShowRagPromptModal] = useState(false);
+  const [showFileUploadModal, setShowUploadModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const clientConfig = useMemo(() => getClientConfig(), []);
 
@@ -1003,6 +1008,13 @@ function _Chat() {
 
   // edit / insert message modal
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+
+  function onFileUploaded(message: string) {
+    chatStore.onFileUploaded(message);
+  }
+  function onFileDownloaded(_message: string) {
+    
+  }
 
   // remember unfinished input
   useEffect(() => {
@@ -1088,6 +1100,22 @@ function _Chat() {
           showModal={showPromptModal}
           setShowModal={setShowPromptModal}
         />
+        {showFileUploadModal 
+        && (
+        <FileUploadModal
+          onClose={() => setShowUploadModal(false)}
+          jobId={session.id}
+          onUploaded={onFileUploaded}
+        />
+        )}
+
+        {showDownloadModal
+        && (
+          <FileDownloadModal
+            onClose={() => setShowDownloadModal(false)}
+            onDownloaded={onFileDownloaded}
+          />
+        )}
       </div>
 
       <div
@@ -1243,6 +1271,8 @@ function _Chat() {
 
         <ChatActions
           showPromptModal={() => setShowPromptModal(true)}
+          showFileUploadModal={() => setShowUploadModal(true)}
+          showFileDownloadModal={() => setShowDownloadModal(true)}
           scrollToBottom={scrollToBottom}
           hitBottom={hitBottom}
           showPromptHints={() => {

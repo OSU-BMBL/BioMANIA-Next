@@ -36,6 +36,7 @@ export enum ApiPath {
   TokenUsage = "/api/tokenusage",
   JobFiles = "/api/job/files",
   JobFile = "/api/job/file",
+  TaskData = "/api/task/data",
 }
 
 export enum ProjectTypeEnum {
@@ -103,6 +104,7 @@ export const BiochatterPath = {
   RAGConnectionStatus: "v1/rag/connectionstatus",
   KGConnectionStatus: "v1/kg/connectionstatus",
   TokenUsage: "v1/tokenusage",
+  TaskData: "v1/task/data",
 }
 
 export const Azure = {

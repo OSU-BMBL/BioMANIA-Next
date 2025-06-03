@@ -76,6 +76,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import {
   CHAT_PAGE_SIZE,
+  ERROR_BIOSERVER_OK,
   LAST_INPUT_KEY,
   Path,
   REQUEST_TIMEOUT_MS,
@@ -94,6 +95,7 @@ import { DbConfiguration } from "../utils/datatypes";
 import { getOncoKBInfo } from "../utils/prodinfo";
 import { FileUploadModal } from "./file-upload";
 import { FileDownloadModal } from "./file-download";
+import { requestTaskData } from "../client/datarequest";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -943,6 +945,40 @@ function _Chat() {
     setMsgRenderIndex(renderMessages.length - CHAT_PAGE_SIZE);
     scrollDomToBottom();
   }
+  function onBotMessageClick(message: ChatMessage) {
+    if (!message.taskId) {
+      return;
+    }
+    const taskId = message.taskId;
+    const sessionId = session.id;
+
+    requestTaskData(sessionId, taskId).then((res: any) => {
+      res.json().then((data: any) => {
+        if (!data || data.code === undefined || data.code !== ERROR_BIOSERVER_OK) {
+          const errMssg = data?.error ?? "Unknown error";
+          console.error(errMssg)
+          return;
+        }
+        if (!data.ipynb || !data.html) {
+          console.error("Invalid task data", data);
+          return;
+        }
+        const ipynb = data.ipynb;
+        const html = data.html;
+        chatStore.updateCurrentSession((session) => {
+          session.currentTask = {
+            taskId,
+            ipynb,
+            html
+          };
+        });
+      }).catch((err: any) => {
+        console.error("Failed to parse task data", err);
+      });
+    }).catch((err) => {
+      console.error("Failed to update current task", err);
+    });;
+  }
 
   // clear context index = context length + index in messages
   const clearContextIndex =
@@ -1247,6 +1283,9 @@ function _Chat() {
                         if (!isMobileScreen) return;
                         setUserInput(message.content);
                       }}
+                      onClick={isUser ? undefined : (_e) => (
+                        onBotMessageClick(message)
+                      )}
                       fontSize={fontSize}
                       parentRef={scrollRef}
                       defaultShow={i >= messages.length - 6}

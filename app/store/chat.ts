@@ -29,6 +29,7 @@ import {
 import { useRAGStore } from "./rag";
 import { useKGStore } from "./kg";
 import { getVectorStoreServerGlobal } from "../utils/rag";
+import { parse_task_id } from "../utils/task";
 
 const generateUniqId = () => uuidv4();
 
@@ -38,6 +39,8 @@ export type ChatMessage = RequestMessage & {
   isError?: boolean;
   id: string;
   model?: ModelType;
+  context?: Array<any>;
+  taskId?: string;
 };
 
 export function createMessage(override: Partial<ChatMessage>): ChatMessage {
@@ -61,6 +64,12 @@ export interface RagContext {
   context: Array<[any, any]>;
 }
 
+export interface TaskData {
+  taskId: string;
+  ipynb?: string;
+  html?: string;
+}
+
 export interface ChatSession {
   id: string;
   topic: string;
@@ -78,6 +87,8 @@ export interface ChatSession {
   useRAGSession: boolean;
   useKGSession: boolean;
   contextualPrompts: RagContext[];
+  currentTask?: TaskData;
+  taskIds?: Array<string>; 
 }
 
 export const DEFAULT_TOPIC = Locale.Store.DefaultTopic;
@@ -407,11 +418,20 @@ export const useChatStore = createPersistStore(
           },
           onFinish(message, context) {
             botMessage.streaming = false;
-            get().updateCurrentSession((session) => {
-              session.contextualPrompts = context??[];
-            })
+            // get().updateCurrentSession((session) => {
+            //   session.contextualPrompts = context??[];
+            // })
             if (message) {
               botMessage.content = message;
+              botMessage.context = context;
+              const taskId = parse_task_id(context);
+              botMessage.taskId = taskId;
+              get().updateCurrentSession(session => {
+                session.taskIds = session.taskIds ?? [];
+                if (taskId && !session.taskIds.includes(taskId)) {
+                  session.taskIds.push(taskId);
+                }
+              })
               get().onNewMessage(botMessage);
             }
             ChatControllerPool.remove(session.id, botMessage.id);

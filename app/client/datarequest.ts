@@ -80,9 +80,9 @@ export const requestUploadFile = async (
   file: File,
   dataType: string,
   demoMode: boolean,
-  subPath: string,
 ) => {
   const FILEUPLOAD = ApiPath.JobFile;
+  const subPath = "";
   let uploadPath = getFetchUrl(subPath, FILEUPLOAD);
   const data = new FormData();
   data.set('file', file);
@@ -140,7 +140,8 @@ export const requestTokenUsage = async (
   return res;
 }
 
-export const requestJobFiles = async (sessionId: string, demoMode: boolean, subPath: string) => {
+export const requestJobFiles = async (sessionId: string, demoMode: boolean) => {
+  const subPath = "";
   const FILEURL = getFetchUrl(subPath, ApiPath.JobFiles + '/' + sessionId);
   try {
     const res = await fetch(FILEURL, {
@@ -157,8 +158,9 @@ export const requestJobFiles = async (sessionId: string, demoMode: boolean, subP
 }
 
 export const requestDownloadJobFile = async (
-  sessionId: string, filename: string, demoMode: boolean, subPath: string
+  sessionId: string, filename: string, demoMode: boolean,
 ) => {
+  const subPath = "";
   const fetchUrl = getFetchUrl(subPath, ApiPath.JobFile + '?' + new URLSearchParams({
     sessionId: sessionId,
     filename,
@@ -178,3 +180,19 @@ export const requestDownloadJobFile = async (
     console.error(e);
   }
 }
+
+export const requestTaskData = async(
+  sessionId: string,
+  taskId: string,
+) =>{
+  const subPath = "";
+  const fetchUrl = getFetchUrl(subPath, ApiPath.TaskData + '/' + sessionId + '/' + taskId);
+  try {
+    const res = await fetch(fetchUrl, {method: "GET"});
+    return res;
+  } catch (e: any) {
+    console.error(e);
+    throw e;
+  }
+}
+

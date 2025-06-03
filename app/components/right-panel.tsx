@@ -7,11 +7,14 @@ import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/theme-solarized_light";
 import "ace-builds/src-noconflict/theme-github";
 import dynamic from "next/dynamic";
+import NotebookViewer from "./notebook-render";
 
 import LoadingIcon from "../icons/three-dots.svg";
 import styles from "./right-panel.module.scss";
 import { IconButton } from "./button";
 import ClearIcon from "../icons/clear.svg";
+import {useChatStore} from "../store/chat";
+
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -21,6 +24,22 @@ const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
 export function RightPanel(
   {className}: {className?: string}
 ) {
+  const chatStore = useChatStore();
+  const session = chatStore.currentSession();
+  const taskData = session.currentTask;
+  const [code, setCode] = React.useState<string>("");
+  function onCellClick(cellId: string) {
+    const taskData = session.currentTask;
+    if (!taskData) {
+      return;
+    }
+    const jsondata = JSON.parse(taskData.ipynb??"{\"cells\": []}");
+    jsondata.cells.forEach((cell: any) => {
+      if (cell.metadata.id === cellId) {
+        setCode(cell.source.join(""));
+      }
+    });
+  }
   
   function onChange(newValue: string) {
     console.log("New value:", newValue);
@@ -36,9 +55,10 @@ export function RightPanel(
         </div>
         <div id="task-window" className={styles["panel-item-body"]}>
         <div className={styles["logs-area"]} > 
-          <Markdown
-            content="## Task List\n\n- [ ] Task 1\n- [ ] Task 2\n- [ ] Task 3"
-          ></Markdown>
+          <NotebookViewer
+            htmlContent={taskData?.html ?? ""}
+            onCellClick={onCellClick}
+          />
         </div>
         </div>
       </div>
@@ -60,9 +80,7 @@ export function RightPanel(
         mode="python"
         theme="github"
         name="right-panel-editor"
-        value={`def onLoad() {
-  print("I've loaded all code.");
-}`}
+        value={code}
         width="100%"
         height="100%"
         highlightActiveLine={true}
